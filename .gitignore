@@ -32,6 +32,11 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# banco local (PGlite) e uploads de dev
+/.pglite
+/public/uploads
 
 # vercel
 .vercel

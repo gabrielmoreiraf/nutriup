@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Protótipo de referência — não faz parte do build.
+    "reference/**",
+    "drizzle/**",
   ]),
 ]);
 
