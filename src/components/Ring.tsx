@@ -14,7 +14,7 @@ export default function Ring({
   const c = 2 * Math.PI * r;
   const off = c - (Math.min(Math.max(pct, 0), 100) / 100) * c;
   return (
-    <div className="ring">
+    <div className="progress-ring">
       <svg width="82" height="82">
         <circle cx="41" cy="41" r={r} fill="none" strokeWidth="8" stroke={light ? "rgba(255,255,255,.25)" : "#E4F0EA"} />
         <circle

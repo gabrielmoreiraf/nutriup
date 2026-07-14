@@ -372,16 +372,18 @@ body {
   align-items: center;
   gap: 14px;
 }
-.ring {
+/* Nome não pode ser ".ring" — colide com a utility class nativa do Tailwind
+   (aplica um box-shadow de anel de foco por baixo do nosso anel de progresso). */
+.progress-ring {
   width: 82px;
   height: 82px;
   flex: none;
   position: relative;
 }
-.ring svg {
+.progress-ring svg {
   transform: rotate(-90deg);
 }
-.ring .num {
+.progress-ring .num {
   position: absolute;
   inset: 0;
   display: flex;
@@ -389,12 +391,12 @@ body {
   align-items: center;
   justify-content: center;
 }
-.ring .num b {
+.progress-ring .num b {
   font-size: 20px;
   font-weight: 800;
   line-height: 1;
 }
-.ring .num span {
+.progress-ring .num span {
   font-size: 10px;
   opacity: 0.85;
 }
@@ -565,17 +567,22 @@ body {
   text-align: center;
   color: var(--muted);
 }
+/* Base: garante centralização do conteúdo (ícone/inicial) em qualquer uso
+   avulso de .rava, fora dos contextos .rank/.post-h que já sobrescrevem
+   tamanho e cor abaixo. */
+.rava {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  flex: none;
+}
 .rank .rava {
   width: 42px;
   height: 42px;
   border-radius: 13px;
-  color: #fff;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-size: 15px;
-  flex: none;
 }
 .rank .nm {
   font-weight: 700;

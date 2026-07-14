@@ -1,6 +1,7 @@
 import type { InferSelectModel } from "drizzle-orm";
 import type { profiles } from "@/db";
 import { decryptField } from "@/lib/crypto";
+import { calcularIMC, classificarIMC, type ImcFaixa } from "@/lib/imc";
 
 type ProfileRow = InferSelectModel<typeof profiles>;
 
@@ -11,6 +12,8 @@ export type Perfil = {
   idade: number;
   peso_kg: number;
   altura_cm: number;
+  imc: number;
+  imc_classificacao: ImcFaixa;
   meta: "perder_peso" | "manter" | "ganho_massa";
   treino: { frequencia_semana: number; tipo: string; intensidade: string };
   medicacao_emagrecimento: { usa: boolean; nome?: string; dose?: string };
@@ -27,12 +30,17 @@ const FREQ_TO_WEEK: Record<string, number> = {
 };
 
 export function buildPerfil(profile: ProfileRow, nome: string): Perfil {
+  const peso = profile.weightKg ?? 70;
+  const altura = profile.heightCm ?? 170;
+  const imc = calcularIMC(peso, altura);
   return {
     nome,
     sexo: profile.sex ?? "Outro",
     idade: profile.age ?? 30,
-    peso_kg: profile.weightKg ?? 70,
-    altura_cm: profile.heightCm ?? 170,
+    peso_kg: peso,
+    altura_cm: altura,
+    imc,
+    imc_classificacao: classificarIMC(imc).faixa,
     meta: (profile.goal ?? "manter") as Perfil["meta"],
     treino: {
       frequencia_semana: FREQ_TO_WEEK[profile.trainingFreq ?? "nao_treino"] ?? 0,

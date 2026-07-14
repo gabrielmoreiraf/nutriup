@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { completeOnboarding, type OnboardingInput } from "@/app/actions/onboarding";
+import ImcCard from "./ImcCard";
 
 type Goal = "perder_peso" | "manter" | "ganho_massa";
 type Sex = "M" | "F" | "Outro";
@@ -124,6 +125,11 @@ export default function OnboardingWizard() {
               <input className="inp" inputMode="numeric" value={height} onChange={(e) => setHeight(e.target.value)} />
             </div>
           </div>
+
+          <div style={{ marginTop: 14 }}>
+            <ImcCard weight={weight} height={height} />
+          </div>
+
           <div className="field">
             <label>Idade</label>
             <input className="inp" inputMode="numeric" value={age} onChange={(e) => setAge(e.target.value)} />
