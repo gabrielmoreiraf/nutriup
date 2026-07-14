@@ -5,6 +5,7 @@ import { anthropicEnabled, callAnthropicText, parseJsonLoose } from "./anthropic
 
 export const avaliacaoSchema = z.object({
   status: z.enum(["no_caminho", "atencao", "fora_da_meta"]),
+  qualidade: z.number().int().min(0).max(10),
   titulo: z.string(),
   feedback: z.string(),
   estimativa: z.object({ kcal: z.number(), proteina_g: z.number() }),
@@ -68,6 +69,7 @@ export function mockEvaluate(perfil: Perfil, plano: PlanoDoDia, relato: string):
   if (CONCERNING.some((re) => re.test(relato))) {
     return {
       status: "atencao",
+      qualidade: 0,
       titulo: "Estamos com você",
       feedback:
         "Obrigado por compartilhar. Percebi sinais de que a relação com a comida pode estar pesando. Você não precisa lidar com isso sozinho(a).",
@@ -113,8 +115,11 @@ export function mockEvaluate(perfil: Perfil, plano: PlanoDoDia, relato: string):
     fora_da_meta: "Valeu por ser honesto no registro. Amanhã é uma nova chance de se aproximar da meta.",
   };
 
+  const qualidade = Math.max(0, Math.min(10, Math.round(ratio * 10) + (treino ? 1 : 0)));
+
   return {
     status,
+    qualidade,
     titulo: titulos[status],
     feedback: feedbacks[status],
     estimativa: { kcal: estKcal, proteina_g: estProt },

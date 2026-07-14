@@ -3,10 +3,27 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db, profiles, users } from "@/db";
 
-/** Retorna o usuário da sessão ou redireciona para /entrar. */
+/**
+ * Retorna o usuário da sessão ou redireciona para /entrar. Também derruba na
+ * hora sessões já ativas de contas bloqueadas pelo admin (o token JWT em si
+ * continua válido até expirar, então o corte precisa acontecer aqui). O
+ * signOut de verdade (limpar cookie) só pode rodar numa Server Action, não
+ * aqui dentro de um Server Component — por isso manda pra /bloqueado, que
+ * dispara o signOut a partir do client.
+ */
 export async function requireUser() {
   const session = await auth();
   if (!session?.user?.id) redirect("/entrar");
+
+  const [row] = await db
+    .select({ isBlocked: users.isBlocked })
+    .from(users)
+    .where(eq(users.id, session.user.id))
+    .limit(1);
+  if (row?.isBlocked) {
+    redirect("/bloqueado");
+  }
+
   return session.user;
 }
 

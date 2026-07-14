@@ -1,27 +1,29 @@
 import Link from "next/link";
 import { eq } from "drizzle-orm";
-import { ArrowLeft, ShieldCheck, Crown, FileText, ChevronRight } from "lucide-react";
+import { ArrowLeft, ShieldCheck, Crown, FileText, ChevronRight, Salad } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/session";
 import { db, users } from "@/db";
 import { getProfileWithName } from "@/lib/plans";
-import { billingEnabled } from "@/lib/premium";
+import { isPremium as checkIsPremium } from "@/lib/premium";
+import { isMasterAdminEmail } from "@/lib/admin";
 import { GOAL_LABEL } from "@/lib/labels";
-import { avatarColor } from "@/lib/avatar";
 import ContaActions from "@/components/conta/ContaActions";
+import AvatarEditor from "@/components/conta/AvatarEditor";
 
 export const dynamic = "force-dynamic";
 
 export default async function ContaPage() {
   const user = await requireOnboardedUser();
   const [u] = await db
-    .select({ email: users.email, isPremium: users.isPremium, planType: users.planType })
+    .select({ email: users.email, planType: users.planType, image: users.image })
     .from(users)
     .where(eq(users.id, user.id))
     .limit(1);
   const row = await getProfileWithName(user.id);
   const name = row?.name ?? "você";
   const goalLabel = GOAL_LABEL[row?.profile.goal ?? "manter"] ?? "—";
-  const premium = billingEnabled() ? !!u?.isPremium : true;
+  const premium = await checkIsPremium(user.id);
+  const isAdmin = isMasterAdminEmail(u?.email);
 
   return (
     <div className="pad" style={{ paddingTop: 12 }}>
@@ -30,9 +32,7 @@ export default async function ContaPage() {
       </Link>
 
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 16 }}>
-        <div className="ava" style={{ background: avatarColor(name), width: 56, height: 56, fontSize: 22 }}>
-          {name[0]?.toUpperCase()}
-        </div>
+        <AvatarEditor name={name} image={u?.image ?? null} />
         <div>
           <div style={{ fontSize: 19, fontWeight: 800 }}>{name}</div>
           <div style={{ fontSize: 13, color: "var(--muted)" }}>{u?.email}</div>
@@ -73,6 +73,17 @@ export default async function ContaPage() {
         </div>
       </div>
 
+      <Link href="/perfil" className="card" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", color: "inherit" }}>
+        <div className="ic" style={{ width: 44, height: 44, borderRadius: 12, background: "var(--mint)", color: "var(--green-d)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
+          <Salad size={20} />
+        </div>
+        <div>
+          <b style={{ fontSize: 15 }}>Seu perfil nutricional</b>
+          <div style={{ fontSize: 12.5, color: "var(--muted)" }}>Preferências alimentares e avaliação física</div>
+        </div>
+        <ChevronRight size={20} style={{ marginLeft: "auto", color: "var(--muted)" }} />
+      </Link>
+
       <Link href="/termos" className="card" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", color: "inherit" }}>
         <div className="ic" style={{ width: 44, height: 44, borderRadius: 12, background: "var(--mint)", color: "var(--green-d)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
           <FileText size={20} />
@@ -83,6 +94,19 @@ export default async function ContaPage() {
         </div>
         <ChevronRight size={20} style={{ marginLeft: "auto", color: "var(--muted)" }} />
       </Link>
+
+      {isAdmin && (
+        <Link href="/admin" className="card" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", color: "inherit" }}>
+          <div className="ic" style={{ width: 44, height: 44, borderRadius: 12, background: "var(--grad)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
+            <ShieldCheck size={20} />
+          </div>
+          <div>
+            <b style={{ fontSize: 15 }}>Painel Admin</b>
+            <div style={{ fontSize: 12.5, color: "var(--muted)" }}>Usuários, bloqueios e acesso premium</div>
+          </div>
+          <ChevronRight size={20} style={{ marginLeft: "auto", color: "var(--muted)" }} />
+        </Link>
+      )}
 
       <ContaActions />
 

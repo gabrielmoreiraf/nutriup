@@ -1,21 +1,22 @@
 /**
- * Pontuação calculada 100% no backend (prompt-mestre §3).
- * A IA só devolve os sinais; aqui somamos de forma determinística e auditável.
+ * Pontuação calculada 100% no backend, a partir de sinais que a IA devolve —
+ * nunca aleatória de verdade (isso seria injusto e não auditável), mas também
+ * nunca um valor fixo por "status": a nota de qualidade vem de como a IA leu o
+ * que foi de fato relatado, então dois dias com o mesmo status pontuam diferente
+ * se o esforço/qualidade relatados forem diferentes.
  *
- * | Sinal                         | Pontos       |
- * | Registrou o dia (base)        | +5           |
- * | status = no_caminho           | +10          |
- * | status = atencao              | +5           |
- * | status = fora_da_meta         | +2           |
- * | treino_detectado = true       | +5           |
- * | Bônus de streak (por dia)     | +1 (máx +10) |
- * | alerta_saude = true           | pontos = 0   |
+ * | Sinal                          | Pontos              |
+ * | Registrou o dia (base)         | +5                  |
+ * | qualidade (0 a 10, dado pela IA)| +0 a +10 (1:1)      |
+ * | treino_detectado = true        | +5                  |
+ * | Bônus de streak (por dia)      | +1 (máx +10)        |
+ * | alerta_saude = true             | pontos = 0          |
  */
 
 export type LogStatus = "no_caminho" | "atencao" | "fora_da_meta";
 
 export type PointSignals = {
-  status: LogStatus;
+  qualidade: number; // 0 a 10, avaliado pela IA a partir do relato
   treino: boolean;
   alertaSaude: boolean;
   streak: number; // streak já considerando o dia registrado
@@ -32,8 +33,8 @@ export function computePoints(s: PointSignals): {
 
   const breakdown: PointsBreakdown[] = [{ reason: "registro", points: 5 }];
 
-  const statusPoints = s.status === "no_caminho" ? 10 : s.status === "atencao" ? 5 : 2;
-  breakdown.push({ reason: `status_${s.status}`, points: statusPoints });
+  const qualidadePoints = Math.round(Math.min(Math.max(s.qualidade, 0), 10));
+  breakdown.push({ reason: "qualidade", points: qualidadePoints });
 
   if (s.treino) breakdown.push({ reason: "treino", points: 5 });
 

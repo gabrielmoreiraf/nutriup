@@ -3,7 +3,7 @@ import { Plus, Heart, MessageCircle, Sparkles } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/session";
 import { getFeed } from "@/lib/mural";
 import { toggleLike } from "@/app/actions/mural";
-import { avatarColor } from "@/lib/avatar";
+import Avatar from "@/components/Avatar";
 import { timeAgo } from "@/lib/date";
 
 export const dynamic = "force-dynamic";
@@ -32,16 +32,15 @@ export default async function MuralPage() {
           <div className="card" style={{ textAlign: "center", padding: "26px 18px" }}>
             <b style={{ fontSize: 15, fontWeight: 800 }}>O mural está vazio</b>
             <p className="sub" style={{ marginTop: 6 }}>
-              Seja o primeiro a compartilhar uma refeição ou treino.
+              O mural só mostra posts seus e de amigos. Adicione amigos no Ranking ou seja o
+              primeiro a compartilhar uma refeição ou treino.
             </p>
           </div>
         ) : (
           feed.map((p) => (
             <div key={p.id} className="post">
               <div className="post-h">
-                <div className="rava" style={{ background: avatarColor(p.authorName) }}>
-                  {p.authorName[0]?.toUpperCase()}
-                </div>
+                <Avatar name={p.authorName} image={p.authorImage} className="rava" />
                 <div>
                   <b>{p.authorName}</b>
                   <div>

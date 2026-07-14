@@ -4,7 +4,7 @@ import { ArrowLeft, Heart, Sparkles, Send } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/session";
 import { getPostWithComments } from "@/lib/mural";
 import { toggleLike, addComment } from "@/app/actions/mural";
-import { avatarColor } from "@/lib/avatar";
+import Avatar from "@/components/Avatar";
 import { timeAgo } from "@/lib/date";
 
 export const dynamic = "force-dynamic";
@@ -31,9 +31,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
       <div style={{ padding: "0 20px 10px" }}>
         <div className="post">
           <div className="post-h">
-            <div className="rava" style={{ background: avatarColor(post.authorName) }}>
-              {post.authorName[0]?.toUpperCase()}
-            </div>
+            <Avatar name={post.authorName} image={post.authorImage} className="rava" />
             <div>
               <b>{post.authorName}</b>
               <div>
@@ -86,12 +84,12 @@ export default async function PostDetailPage({ params }: { params: Promise<{ id:
 
         {comments.map((c) => (
           <div key={c.id} className="card" style={{ display: "flex", gap: 11, alignItems: "flex-start", padding: 14 }}>
-            <div
+            <Avatar
+              name={c.authorName}
+              image={c.authorImage}
               className="rava"
-              style={{ background: avatarColor(c.authorName), width: 36, height: 36, borderRadius: 11, fontSize: 13 }}
-            >
-              {c.authorName[0]?.toUpperCase()}
-            </div>
+              style={{ width: 36, height: 36, borderRadius: 11, fontSize: 13 }}
+            />
             <div>
               <b style={{ fontSize: 13.5 }}>{c.authorName}</b>
               <span style={{ fontSize: 11.5, color: "var(--muted)", marginLeft: 8 }}>{timeAgo(c.createdAt)}</span>

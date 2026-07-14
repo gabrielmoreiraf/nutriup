@@ -35,11 +35,18 @@ export const users = pgTable("users", {
   emailVerified: timestamp("email_verified", { mode: "date" }),
   passwordHash: text("password_hash"),
   image: text("image"),
+  // @handle único pra achar/adicionar amigos sem expor e-mail (ranking).
+  handle: text("handle").unique(),
   isPremium: boolean("is_premium").notNull().default(false),
   planType: planTypeEnum("plan_type"),
   asaasCustomerId: text("asaas_customer_id"),
   // CPF/CNPJ — exigido pela Asaas para criar o cliente/cobrança lá.
   cpfCnpj: text("cpf_cnpj"),
+  // Admin master (gabrielfmoreira4@gmail.com): bloqueio e acesso concedido manualmente.
+  isBlocked: boolean("is_blocked").notNull().default(false),
+  // Quando setado, isPremium expira sozinho nessa data (concessão de X dias).
+  // Null + isPremium=true = acesso vitalício (ou assinatura Asaas ativa).
+  adminAccessUntil: timestamp("admin_access_until", { mode: "date" }),
   // streak mantido aqui e recalculado a cada registro (brief §5)
   streakCount: integer("streak_count").notNull().default(0),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
@@ -109,6 +116,11 @@ export const profiles = pgTable("profiles", {
   otherConditions: jsonb("other_conditions").$type<string[]>(),
   restrictions: jsonb("restrictions").$type<Restrictions>(),
   prefs: jsonb("prefs").$type<Prefs>(),
+  // Avaliação física (laudo de composição corporal) anexada pelo usuário — texto
+  // extraído do PDF (sem OCR de imagem), usado como contexto real pra IA.
+  assessmentUrl: text("assessment_url"),
+  assessmentText: text("assessment_text"),
+  assessmentUpdatedAt: timestamp("assessment_updated_at", { mode: "date" }),
   updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
 });
 

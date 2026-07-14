@@ -72,3 +72,39 @@ export async function uploadImage(file: File): Promise<string> {
   await writeFile(path.join(dir, name), buf);
   return `/uploads/${name}`;
 }
+
+const MAX_DOC_BYTES = 8 * 1024 * 1024; // 8 MB
+
+/** Upload de documentos (hoje só a avaliação física, em PDF). Mesmo backend do uploadImage. */
+export async function uploadDocument(file: File): Promise<string> {
+  if (file.type !== "application/pdf") {
+    throw new Error("Envie um arquivo PDF.");
+  }
+  if (file.size > MAX_DOC_BYTES) {
+    throw new Error("Arquivo muito grande (máx. 8 MB).");
+  }
+
+  const name = `${randomUUID()}.pdf`;
+  const buf = Buffer.from(await file.arrayBuffer());
+
+  if (r2Enabled()) {
+    const { PutObjectCommand } = await import("@aws-sdk/client-s3");
+    const client = await getS3();
+    const key = `documentos/${name}`;
+    await client.send(
+      new PutObjectCommand({
+        Bucket: process.env.R2_BUCKET!,
+        Key: key,
+        Body: buf,
+        ContentType: file.type,
+        CacheControl: "private, max-age=0",
+      }),
+    );
+    return `${process.env.R2_PUBLIC_URL!.replace(/\/$/, "")}/${key}`;
+  }
+
+  const dir = path.join(process.cwd(), "public", "uploads");
+  await mkdir(dir, { recursive: true });
+  await writeFile(path.join(dir, name), buf);
+  return `/uploads/${name}`;
+}

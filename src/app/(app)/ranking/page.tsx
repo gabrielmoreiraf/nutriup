@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Flame } from "lucide-react";
+import { Flame, UserPlus } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/session";
 import { getWeeklyRanking, type RankScope } from "@/lib/ranking";
-import { avatarColor } from "@/lib/avatar";
+import Avatar from "@/components/Avatar";
 
 export const dynamic = "force-dynamic";
 
@@ -20,8 +20,19 @@ export default async function RankingPage({
 
   return (
     <div className="pad" style={{ paddingTop: 12 }}>
-      <h2 className="h-title">Ranking</h2>
-      <p className="sub">Consistência vale ponto. Bora subir essa semana.</p>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+        <div>
+          <h2 className="h-title">Ranking</h2>
+          <p className="sub">Consistência vale ponto. Bora subir essa semana.</p>
+        </div>
+        <Link
+          href="/ranking/amigos"
+          className="btn btn-ghost"
+          style={{ width: "auto", padding: "10px 14px", fontSize: 13, whiteSpace: "nowrap", textDecoration: "none" }}
+        >
+          <UserPlus size={16} /> Amigos
+        </Link>
+      </div>
 
       <div className="tabs">
         <Link href="/ranking?tab=amigos" className={scope === "amigos" ? "on" : ""} style={tabStyle}>
@@ -43,9 +54,7 @@ export default async function RankingPage({
         rows.map((r) => (
           <div key={r.userId} className={"rank" + (r.isMe ? " me" : "")}>
             <div className="pos">{r.position <= 3 ? MEDALS[r.position - 1] : r.position}</div>
-            <div className="rava" style={{ background: avatarColor(r.name) }}>
-              {r.name[0]?.toUpperCase()}
-            </div>
+            <Avatar name={r.name} image={r.image} className="rava" />
             <div>
               <div className="nm">{r.isMe ? `Você (${r.name})` : r.name}</div>
               <div className="st">

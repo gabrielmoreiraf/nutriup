@@ -101,7 +101,7 @@ export async function registerDay(userId: string, relato: string): Promise<Regis
 
   if (!avaliacao.alerta_saude) {
     const result = computePoints({
-      status: avaliacao.status,
+      qualidade: avaliacao.qualidade,
       treino: avaliacao.treino_detectado,
       alertaSaude: false,
       streak,

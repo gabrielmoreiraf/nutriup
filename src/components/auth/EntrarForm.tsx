@@ -7,7 +7,13 @@ import { loginUser, type AuthState } from "@/app/actions/auth";
 import GoogleButton from "./GoogleButton";
 import PasswordField from "./PasswordField";
 
-export default function EntrarForm({ googleEnabled }: { googleEnabled: boolean }) {
+export default function EntrarForm({
+  googleEnabled,
+  blocked,
+}: {
+  googleEnabled: boolean;
+  blocked?: boolean;
+}) {
   const [state, action, pending] = useActionState<AuthState, FormData>(loginUser, null);
 
   return (
@@ -19,6 +25,12 @@ export default function EntrarForm({ googleEnabled }: { googleEnabled: boolean }
         Bem-vindo de volta
       </h2>
       <p className="sub">Entre pra continuar sua rotina.</p>
+
+      {blocked && (
+        <p style={{ color: "#c0392b", fontSize: 13, fontWeight: 600, marginTop: 12 }}>
+          Esta conta foi bloqueada. Fale com o suporte.
+        </p>
+      )}
 
       <form action={action}>
         <div className="field">

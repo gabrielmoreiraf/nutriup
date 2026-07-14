@@ -20,6 +20,8 @@ export type Perfil = {
   outras_condicoes: string[];
   restricoes_alimentares: string[];
   preferencias: { gosta: string[]; evita: string[] };
+  /** Texto extraído de um laudo real de avaliação física (composição corporal), quando o usuário anexou um. */
+  avaliacao_fisica: string | null;
 };
 
 const FREQ_TO_WEEK: Record<string, number> = {
@@ -58,5 +60,6 @@ export function buildPerfil(profile: ProfileRow, nome: string): Perfil {
       gosta: profile.prefs?.gosta ?? [],
       evita: profile.prefs?.evita ?? [],
     },
+    avaliacao_fisica: profile.assessmentText || null,
   };
 }

@@ -65,6 +65,15 @@ export async function loginUser(_prev: AuthState, formData: FormData): Promise<A
     return { error: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
 
+  const [existing] = await db
+    .select({ isBlocked: users.isBlocked })
+    .from(users)
+    .where(eq(users.email, parsed.data.email))
+    .limit(1);
+  if (existing?.isBlocked) {
+    return { error: "Esta conta foi bloqueada. Fale com o suporte." };
+  }
+
   try {
     await signIn("credentials", {
       email: parsed.data.email,
@@ -86,6 +95,11 @@ export async function signInWithGoogle() {
 
 export async function logout() {
   await signOut({ redirectTo: "/" });
+}
+
+/** Chamado pela tela /bloqueado pra limpar a sessão de uma conta bloqueada. */
+export async function logoutBlocked() {
+  await signOut({ redirectTo: "/entrar?bloqueado=1" });
 }
 
 // next/navigation lança um erro especial para redirects; precisamos deixá-lo passar.

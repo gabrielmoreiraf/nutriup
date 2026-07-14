@@ -1,10 +1,12 @@
 import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
-import { db, pointsLedger, users, friendships } from "@/db";
+import { db, pointsLedger, users } from "@/db";
 import { weekStartISO } from "@/lib/date";
+import { friendIds } from "@/lib/friends";
 
 export type RankRow = {
   userId: string;
   name: string;
+  image: string | null;
   streak: number;
   points: number;
   position: number;
@@ -12,14 +14,6 @@ export type RankRow = {
 };
 
 export type RankScope = "amigos" | "global";
-
-async function friendIds(userId: string): Promise<string[]> {
-  const rows = await db
-    .select({ friendId: friendships.friendId })
-    .from(friendships)
-    .where(and(eq(friendships.userId, userId), eq(friendships.status, "accepted")));
-  return rows.map((r) => r.friendId);
-}
 
 /** Ranking semanal (soma de points_ledger desde segunda-feira). */
 export async function getWeeklyRanking(userId: string, scope: RankScope): Promise<RankRow[]> {
@@ -35,18 +29,20 @@ export async function getWeeklyRanking(userId: string, scope: RankScope): Promis
     .select({
       userId: pointsLedger.userId,
       name: users.name,
+      image: users.image,
       streak: users.streakCount,
       points: sql<number>`sum(${pointsLedger.points})`.mapWith(Number),
     })
     .from(pointsLedger)
     .innerJoin(users, eq(users.id, pointsLedger.userId))
     .where(and(...filters))
-    .groupBy(pointsLedger.userId, users.name, users.streakCount)
+    .groupBy(pointsLedger.userId, users.name, users.image, users.streakCount)
     .orderBy(desc(sql`sum(${pointsLedger.points})`));
 
   return rows.map((r, i) => ({
     userId: r.userId,
     name: r.name ?? "Anônimo",
+    image: r.image,
     streak: r.streak,
     points: r.points,
     position: i + 1,
