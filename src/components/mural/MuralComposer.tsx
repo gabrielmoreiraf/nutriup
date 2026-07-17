@@ -1,18 +1,50 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, ImagePlus } from "lucide-react";
 import { createPost, type PostState } from "@/app/actions/mural";
+import { looksLikeHeic, convertHeicToJpeg } from "@/lib/heic-client";
 
 export default function MuralComposer() {
   const [state, action, pending] = useActionState<PostState, FormData>(createPost, null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [converting, setConverting] = useState(false);
+  const [convertError, setConvertError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    setPreview(file ? URL.createObjectURL(file) : null);
+    setConvertError(null);
+
+    if (!file) {
+      setPreview(null);
+      return;
+    }
+
+    if (!looksLikeHeic(file)) {
+      setPreview(URL.createObjectURL(file));
+      return;
+    }
+
+    // Fotos de iPhone costumam vir em HEIC por padrão — nem todo navegador exibe
+    // esse formato, então converte pra JPEG aqui antes de anexar ao formulário.
+    setConverting(true);
+    try {
+      const jpegFile = await convertHeicToJpeg(file);
+
+      const dt = new DataTransfer();
+      dt.items.add(jpegFile);
+      if (inputRef.current) inputRef.current.files = dt.files;
+
+      setPreview(URL.createObjectURL(jpegFile));
+    } catch {
+      setConvertError("Não deu pra converter essa foto. Tente outra imagem.");
+      setPreview(null);
+    } finally {
+      setConverting(false);
+    }
   };
 
   return (
@@ -34,10 +66,23 @@ export default function MuralComposer() {
             border: "1.5px dashed var(--line)",
             borderRadius: 18,
             overflow: "hidden",
-            cursor: "pointer",
+            cursor: converting ? "default" : "pointer",
           }}
         >
-          {preview ? (
+          {converting ? (
+            <div
+              style={{
+                height: 160,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--muted)",
+                background: "var(--mint)",
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 600 }}>Convertendo imagem...</span>
+            </div>
+          ) : preview ? (
             <Image
               src={preview}
               alt="Prévia"
@@ -63,7 +108,15 @@ export default function MuralComposer() {
               <span style={{ fontSize: 13, fontWeight: 600 }}>Adicionar foto</span>
             </div>
           )}
-          <input type="file" name="image" accept="image/*" onChange={onPick} style={{ display: "none" }} />
+          <input
+            ref={inputRef}
+            type="file"
+            name="image"
+            accept="image/*,.heic,.heif"
+            onChange={onPick}
+            style={{ display: "none" }}
+            disabled={converting}
+          />
         </label>
 
         <textarea
@@ -73,12 +126,14 @@ export default function MuralComposer() {
           placeholder="Escreva uma legenda..."
         />
 
-        {state?.error && (
-          <p style={{ color: "#c0392b", fontSize: 13, fontWeight: 600, marginTop: 12 }}>{state.error}</p>
+        {(convertError || state?.error) && (
+          <p style={{ color: "#c0392b", fontSize: 13, fontWeight: 600, marginTop: 12 }}>
+            {convertError ?? state?.error}
+          </p>
         )}
 
-        <button className="btn btn-primary" style={{ marginTop: 16 }} disabled={pending}>
-          {pending ? "Publicando..." : "Publicar"}
+        <button className="btn btn-primary" style={{ marginTop: 16 }} disabled={pending || converting}>
+          {pending ? "Publicando..." : converting ? "Aguarde..." : "Publicar"}
         </button>
       </form>
     </div>

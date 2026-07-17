@@ -19,7 +19,7 @@ export function r2Enabled(): boolean {
   );
 }
 
-const MAX_BYTES = 6 * 1024 * 1024; // 6 MB
+const MAX_BYTES = 12 * 1024 * 1024; // 12 MB — fotos de celular modernas passam fácil de 6 MB
 const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
